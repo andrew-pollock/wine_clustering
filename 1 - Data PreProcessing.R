@@ -1,60 +1,47 @@
 
 library(dplyr)
 
-# Load both datasets
-red_raw   <- read_delim("data/raw/winequality-red.csv", ";", escape_double = FALSE, trim_ws = TRUE)
-white_raw <- read_delim("data/raw/winequality-white.csv", ";", escape_double = FALSE, trim_ws = TRUE)
-
-# Add a column for the colour
-red_raw$colour <- "Red"
-white_raw$colour <- "White"
-
-# Combine the two datasets
-combined_raw <- rbind(red_raw, white_raw)
+# Load the datasets
+wine_raw <- readr::read_delim("data/raw/winequality-white.csv", ";", escape_double = FALSE, trim_ws = TRUE)
 
 # Check the variable names
-names(combined_raw)
+names(wine_raw)
 
 # Replace spaces with underscores in variable names
-names(combined_raw) <- gsub(pattern = " ", replacement = "_", x = names(combined_raw))
+names(wine_raw) <- gsub(pattern = " ", replacement = "_", x = names(wine_raw))
+
+# Count the NAs in each column
+sapply(wine_raw, function(x) sum(is.na(x)))
 
 # Check summary
-summary(combined_raw)
-# free sulphur dioxide and residual sugar look like they have outliers
+summary(wine_raw)
+# Several variables seem to have outliers
 
 
-# Investigating free sulphur dioxide
-hist(combined_raw$free_sulfur_dioxide)
-combined_raw[combined_raw$free_sulfur_dioxide > 100,]
-# This doesn't look like an error in the data, just unusual observations
+## Create a function to count the number of outliers
+count_outliers <- function(input, sd = 4){
+  cutoff <- mean(input) + sd*sd(input)
+  sum(input > cutoff)
+}
 
-# Would using the log of free sulphur dioxide help normalise the data?
-hist(log(combined_raw$free_sulfur_dioxide))
-
-# Log transform the variable
-combined_raw$free_sulfur_dioxide <- log(combined_raw$free_sulfur_dioxide)
+## Apply this function to every variable
+wine_raw %>% summarise(across(1:12, count_outliers))
 
 
-# Investigating residual sugar
-hist(combined_raw$residual_sugar)
-combined_raw[combined_raw$residual_sugar > 40,]
-# This observation seems like a significant outlier in both sugar and sulphur
-# I'll exclude it
-combined_raw <- combined_raw[combined_raw$residual_sugar < 40,]
 
-# Now lets check residual sugar again
-hist(combined_raw$residual_sugar)
+# Calculate the mean + 4 s.d cutoff for each variable
+cutoffs <- c(colMeans(wine_raw, na.rm = TRUE) + 4*sapply(wine_raw, sd))
 
-# This is still skewed so I'll try taking the log
-hist(log(combined_raw$residual_sugar))
+# Loop through each variable, removing any outliers
+for(i in 1:12){
+  wine_raw <- wine_raw[wine_raw[,i] < cutoffs[i],]
+}
 
-# Log transform the variable
-combined_raw$residual_sugar <- log(combined_raw$residual_sugar)
 
 # Do a final summary check of the dataset
-summary(combined_raw)
+summary(wine_raw)
 
 
 # Save the formatted data
-readr::write_csv(combined_raw, "data/processed/processed_wine_data.csv")
+readr::write_csv(wine_raw, "data/processed/processed_wine_data.csv")
 

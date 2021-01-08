@@ -11,7 +11,7 @@ library(plotly)
 wine_data <- readr::read_csv("data/processed/processed_wine_data.csv")
 
 ## Plot 1 - Visualising the distribution of each variable individually
-(plot1 <- wine_data %>% select(-colour) %>%
+(plot1 <- wine_data %>% 
     gather(key = "Variable", value = "Value") %>% 
     mutate(Value = as.numeric(Value)) %>% 
     ggplot(aes(x=Value, group=Variable, fill = Variable)) + 
@@ -51,8 +51,8 @@ pca_model <- preProcess(wine_data[,1:12], method = "pca", pcaComp = 3)
 pca_data <- predict(pca_model, wine_data)
 
 # Plot the first 3 PC on a 3d scatter graph, coloured by wine type
-plot_ly(x=pca_data$PC1, y=pca_data$PC2, z=pca_data$PC3, color=pca_data$colour, colors = c("red", "blue")) %>% 
-    add_markers(alpha = 0.2) %>% layout(title = "Wine Colour Split by Principal Components",
+plot_ly(x=pca_data$PC1, y=pca_data$PC2, z=pca_data$PC3) %>% 
+    add_markers(alpha = 0.8) %>% layout(title = "Wine Colour Split by Principal Components",
                                         scene = list(xaxis = list(title = 'PC1'),
                                                      yaxis = list(title = 'PC2'),
                                                      zaxis = list(title = 'PC3')))
