@@ -11,19 +11,15 @@ wine_data <- readr::read_csv("data/processed/processed_wine_data.csv")
 # Set a seed to ensure reproducibility
 set.seed(101)
 
+# Density is strongly correlated with both residual sugar and alcohol, so remove it
+wine_data <- wine_data %>% select(-density)
 
 # Normalise the 3 skewed variables
 wine_data <- wine_data %>% mutate_at(.vars = c("residual_sugar",  "chlorides", "sulphates"), .funs = log)
 
-# Density is strongly correlated with both residual sugar and alcohol, so remove it
-wine_data <- wine_data %>% select(-density)
-
-
 # Next, center and scale the variables so large scaled variables don't dominate
 preprocessing_func <- preProcess(wine_data, method = c("center", "scale"))
-
-normalised_data <- predict(preprocessing_func, wine_data)
-
+centered_data <- predict(preprocessing_func, wine_data)
 
 
 # Create a empty dataframe with a dummy row
@@ -33,7 +29,7 @@ df <- data.frame(k = as.integer(0), sum_of_squares = as.double(0))
 # Calculate the total sum of squares within each cluster
 # Append that to the above data frame
 for (k in 1:20){
-  df <- rbind(df, c(k, kmeans(normalised_data, centers = k, nstart = 3, iter.max = 20)$tot.withinss))
+  df <- rbind(df, c(k, kmeans(centered_data, centers = k, nstart = 3, iter.max = 20)$tot.withinss))
 }
 
 # Drop the dummy row
@@ -56,25 +52,23 @@ ggplot(df[2:20,], aes(x=k, y=abs(diff))) +
   geom_point() +
   labs(x = "Number of Clusters", y = "Reduction in Within Cluster TSS") +
   theme_bw()
-# From 5 clusters onwards this decrease plateaus 
+# From 4 clusters onwards this decrease plateaus 
 
 
-
-
-## Based on this analysis I'll use K = 5
-k5 <- kmeans(normalised_data, centers = 6, nstart = 15, iter.max = 20)
+## Based on this analysis I'll use K = 4
+k4 <- kmeans(centered_data, centers = 4, nstart = 15, iter.max = 20)
 
 # Append the clusters to the original dataset
-wine_data$cluster <- k5$cluster
+wine_data$cluster <- k4$cluster
 
 # How many wines are in each cluster?
 wine_data %>% group_by(cluster) %>% summarise(n())
 
 
-cluster_palette <- c("#1b9e77", "#e7298a", "#7570b3", "#d95f02", "#66a61e", "red")
+cluster_palette <- c("#1b9e77", "#e7298a", "#7570b3", "#d95f02")
 
 # Visualise these clusters
-fviz_cluster(k5, data = wine_data, labelsize = NA, ellipse.alpha = 0.1, shape = 16,
+fviz_cluster(k4, data = wine_data, labelsize = NA, ellipse.alpha = 0.1, shape = 16, 
              palette = cluster_palette, 
              ggtheme = theme_bw(), xlab = "First Principal Component", ylab = "Second Principal Component",
              main = "Cluster Distribution on First 2 Principal Clusters")
