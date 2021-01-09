@@ -29,12 +29,12 @@ ui <- dashboardPage(
                      
                      fluidRow(plotlyOutput("scatter_plot", height = 600, width = "100%")),
                      
-                     fluidRow(box(title = "Inputs", status = "primary", solidHeader = TRUE,  width = 10, #height = 440,
-                                  column(width = 4, selectInput("filter_var_1", "Filter Variable 1", choices=colnames(wine_data)[-12],
+                     fluidRow(box(title = "Select Variables to Visualise", status = "primary", solidHeader = TRUE,  width = 12, #height = 440,
+                                  column(width = 4, selectInput("filter_var_1", "Filter Variable 1", choices=colnames(wine_data)[-15],
                                                                 selected=colnames(wine_data)[1])),
-                                  column(width = 4, selectInput("filter_var_2", "Filter Variable 2", choices=colnames(wine_data)[-12],
+                                  column(width = 4, selectInput("filter_var_2", "Filter Variable 2", choices=colnames(wine_data)[-15],
                                                                 selected=colnames(wine_data)[2])),
-                                  column(width = 4, selectInput("filter_var_3", "Filter Variable 3", choices=colnames(wine_data)[-12],
+                                  column(width = 4, selectInput("filter_var_3", "Filter Variable 3", choices=colnames(wine_data)[-15],
                                                                 selected=colnames(wine_data)[3]))
                      )
                      )),
@@ -43,33 +43,21 @@ ui <- dashboardPage(
               
               ## Right Hand Column
               column(width = 6,  # Width (relative to full screen)
-                     fluidRow(box(plotlyOutput("test_plot2", height = 450, width = "200%"))), # First row - 1 graph
                      
-                     # Next row - put in a box?
-##                     fluidRow(box(title = "Inputs", status = "primary", solidHeader = TRUE,  width = 10, #height = 440,
-  ##                     column(width = 4, selectInput("filter_var_1", "Filter Variable 1", choices=colnames(wine_data)[-12],
-    ##                                                  selected=colnames(wine_data)[1])),
-      ##                 column(width = 4, selectInput("filter_var_2", "Filter Variable 2", choices=colnames(wine_data)[-12],
-        ##                                  selected=colnames(wine_data)[2])),
-          ##             column(width = 4, selectInput("filter_var_3", "Filter Variable 3", choices=colnames(wine_data)[-12],
-            ##                              selected=colnames(wine_data)[3]))
-              ##         )
-                ##       ),
-                     fluidRow(box(title = "Average Values by Cluster", status = "primary", solidHeader = TRUE,  width = 10, 
-                       tableOutput("summary_table")#, width = 6
+                     fluidRow(box(title = "Cluster Summary Statistics", status = "primary", solidHeader = TRUE,  width = 11, 
+                                  tableOutput("summary_table")
                                   )
-                              ))
+                              ),
+                     fluidRow(box(plotlyOutput("test_plot2", height = 450, width = "200%")))
+                     
+                     )
             )
     ))
 )
 
 
-shinyApp(ui, server)
-
 
 server <- function(input, output) { 
-  
-  #pie_chart_data2 <- reactive({pie_chart_data})
   
   scatter_data <- reactive({
     vars_to_select <- c(input$filter_var_1, input$filter_var_2, input$filter_var_3, "cluster")
@@ -82,42 +70,44 @@ server <- function(input, output) {
   
   output$scatter_plot <- renderPlotly({
     
-    scatter_df <- scatter_data()
+    scatter_df <- scatter_data() %>% mutate(cluster = as.factor(paste0("Cluster ",cluster)))
     plot_ly(data = scatter_df,
             x=~get(colnames(scatter_df)[1]), 
             y=~get(colnames(scatter_df)[2]), 
             z=~get(colnames(scatter_df)[3]), 
-            color=as.factor(scatter_data()$cluster), 
-            colors = c("#1b9e77", "#d95f02", "#7570b3", "#e7298a", "#66a61e")) %>% 
-      add_markers(alpha = 1) %>% layout(title = "Clusters Split by Principal Components",
+            color=scatter_df$cluster, 
+            colors = c("#1b9e77", "#e7298a", "#7570b3", "#d95f02")) %>% 
+      add_markers(alpha = 1) %>% layout(title = paste0("Wine Clusters Split by ", colnames(scatter_df)[1], ", ", 
+                                                       colnames(scatter_df)[2], " and ", colnames(scatter_df)[3]),
                                         scene = list(xaxis = list(title = colnames(scatter_df)[1]),
                                                      yaxis = list(title = colnames(scatter_df)[2]),
-                                                     zaxis = list(title = colnames(scatter_df)[3])))
+                                                     zaxis = list(title = colnames(scatter_df)[3])),
+                                        legend = list(font = list(size = 20, itemwidth = 30)))
   })
   
   
   output$test_plot2 <- renderPlotly({
-    plot_ly(pie_chart_data, labels = ~cluster, values = ~count, type = 'pie', sort = FALSE, direction = "clockwise", textposition = 'inside', textinfo = 'label+percent',
-            marker = list(colors = cluster_palette,
-                          line = list(color = '#FFFFFF', width = 1)))  %>% 
-      layout(title = 'United States Personal Expenditures by Categories in 1960',
+    plot_ly(pie_chart_data, labels = ~cluster, values = ~count, type = 'pie', 
+            sort = FALSE, direction = "clockwise", textposition = 'inside', textinfo = 'label+percent',
+            hoverinfo = 'text', text = ~paste(count, ' wines are in this cluster'),
+            marker = list(colors = cluster_palette, line = list(color = '#FFFFFF', width = 1)))  %>% 
+      layout(title = 'Distribution of Wines by Cluster', showlegend = TRUE,
              xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
              yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
              legend = list(font = list(size = 20, itemwidth = 30)))
   })
-  
 
-  
-  
-## Getting the reactive filter for the summary table
+  ## Getting the reactive filter for the summary table
   filter_data <- reactive({
-    output_data <- c("Cluster", input$filter_var_1, input$filter_var_2, input$filter_var_3)
+    output_data <- c("Cluster", "Number_of_Wines", "quality", input$filter_var_1, input$filter_var_2, input$filter_var_3)
   })
   
-### Creating the summary table
+  ### Creating the summary table
   output$summary_table <- renderTable({
     wine_data %>% mutate(Cluster = paste0("Cluster ", as.integer(cluster))) %>% 
-      group_by(Cluster) %>% select(filter_data()) %>% summarise_all(mean)
+      group_by(Cluster) %>% mutate(Number_of_Wines = n()) %>% 
+      select(filter_data()) %>% summarise_all(mean) %>% mutate(Number_of_Wines=as.integer(Number_of_Wines)) %>% 
+      rename(`Number of Wines` = Number_of_Wines, `Avg Quality` = quality)
   })
   
 }
