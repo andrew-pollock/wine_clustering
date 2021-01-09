@@ -62,7 +62,7 @@ k4 <- kmeans(centered_data, centers = 4, nstart = 15, iter.max = 20)
 wine_data$cluster <- k4$cluster
 
 # Save this dataset for use in my dashboard
-readr::write_csv(wine_data, "data/processed/final_wine_data.csv")
+readr::write_csv(wine_data, "data/processed/clustered_wine_data.csv")
 
 # How many wines are in each cluster?
 wine_data %>% group_by(cluster) %>% summarise(n())
@@ -90,4 +90,12 @@ featurePlot(x = wine_data[, 1:11],
 )
 
 
+## Format the data for my dashboard
+pca_model <- preProcess(wine_data[,1:11], method = "pca", pcaComp = 3)
+pca_data <- predict(pca_model, wine_data[,1:11])
+
+final_wine_data <- cbind(wine_data, pca_data) %>% select(PC1, PC2, PC3, everything())
+
+# Save this dataset for use in my dashboard
+readr::write_csv(final_wine_data, "data/processed/final_wine_data.csv")
 
