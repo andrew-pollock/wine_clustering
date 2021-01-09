@@ -1,9 +1,8 @@
 
 library(shiny)
 library(shinydashboard)
-library(RColorBrewer)  ## Needed?
 library(dplyr)
-library(tidyr)   ## Not needed?
+library(plotly) 
 library(ggplot2)
 
 # Load the data
