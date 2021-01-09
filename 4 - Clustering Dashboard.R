@@ -76,7 +76,11 @@ server <- function(input, output) {
             y=~get(colnames(scatter_df)[2]), 
             z=~get(colnames(scatter_df)[3]), 
             color=scatter_df$cluster, 
+<<<<<<< HEAD
             colors = cluster_palette) %>% 
+=======
+            colors = c("#1b9e77", "#e7298a", "#7570b3", "#d95f02")) %>% 
+>>>>>>> c24693db28598a8dc154b4bed56ed7f6c05e73c0
       add_markers(alpha = 1) %>% layout(title = paste0("Wine Clusters Split by ", colnames(scatter_df)[1], ", ", 
                                                        colnames(scatter_df)[2], " and ", colnames(scatter_df)[3]),
                                         scene = list(xaxis = list(title = colnames(scatter_df)[1]),
