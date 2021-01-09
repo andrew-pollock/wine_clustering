@@ -61,6 +61,9 @@ k4 <- kmeans(centered_data, centers = 4, nstart = 15, iter.max = 20)
 # Append the clusters to the original dataset
 wine_data$cluster <- k4$cluster
 
+# Save this dataset for use in my dashboard
+readr::write_csv(wine_data, "data/processed/final_wine_data.csv")
+
 # How many wines are in each cluster?
 wine_data %>% group_by(cluster) %>% summarise(n())
 
