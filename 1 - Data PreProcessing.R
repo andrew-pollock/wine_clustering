@@ -17,7 +17,6 @@ sapply(wine_raw, function(x) sum(is.na(x)))
 summary(wine_raw)
 # Several variables seem to have outliers
 
-
 ## Create a function to count the number of outliers
 count_outliers <- function(input, sd = 4){
   cutoff <- mean(input) + sd*sd(input)
@@ -27,8 +26,6 @@ count_outliers <- function(input, sd = 4){
 ## Apply this function to every variable
 wine_raw %>% summarise(across(1:12, count_outliers))
 
-
-
 # Calculate the mean + 4 s.d cutoff for each variable
 cutoffs <- c(colMeans(wine_raw, na.rm = TRUE) + 4*sapply(wine_raw, sd))
 
@@ -37,10 +34,8 @@ for(i in 1:12){
   wine_raw <- wine_raw[wine_raw[,i] < cutoffs[i],]
 }
 
-
 # Do a final summary check of the dataset
 summary(wine_raw)
-
 
 # Save the formatted data
 readr::write_csv(wine_raw, "data/processed/processed_wine_data.csv")
