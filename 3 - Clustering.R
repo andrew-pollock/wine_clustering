@@ -58,6 +58,9 @@ ggplot(df[2:20,], aes(x=k, y=abs(diff))) +
 ## Based on this analysis I'll use K = 4
 k4 <- kmeans(centered_data, centers = 4, nstart = 15, iter.max = 20)
 
+# Check the within cluster sum of squares
+k4$tot.withinss
+
 # Append the clusters to the original dataset
 wine_data$cluster <- k4$cluster
 

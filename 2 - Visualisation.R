@@ -1,10 +1,11 @@
 
 # Data visualisation
 library(dplyr)
-library(ggplot2)
-library(ggcorrplot)
 library(caret)
 library(tidyr)
+library(ggplot2)
+library(ggcorrplot)
+
 
 # Load in the processed data
 wine_data <- readr::read_csv("data/processed/processed_wine_data.csv")
@@ -41,7 +42,7 @@ ggsave("plots/Plot1_Variable_Distribution.png", plot1)
 ggsave("plots/Plot2_Logged_Distribution.png", plot2)
 
 
-## Plot 2 - Create a correlation plot for the variables
+## Plot 3 - Create a correlation plot for the variables
 
 # Create a correlation matrix of all the independent variables
 wine_correlation <- cor(wine_data[,1:12])
@@ -54,6 +55,6 @@ wine_correlation <- cor(wine_data[,1:12])
         theme(plot.title = element_text(hjust = 0.5)))
 
 # Save the plot as a png
-ggsave("plots/Plot3_Variable_Correlation.png", plot2)
+ggsave("plots/Plot3_Variable_Correlation.png", plot3)
 
 
