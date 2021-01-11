@@ -65,17 +65,12 @@ server <- function(input, output) {
     output_data
   })
   
-  
-  
   output$scatter_plot <- renderPlotly({
     
     scatter_df <- scatter_data() %>% mutate(cluster = as.factor(paste0("Cluster ",cluster)))
     plot_ly(data = scatter_df,
-            x=~get(colnames(scatter_df)[1]), 
-            y=~get(colnames(scatter_df)[2]), 
-            z=~get(colnames(scatter_df)[3]), 
-            color=scatter_df$cluster, 
-            colors = cluster_palette) %>% 
+            x=~get(colnames(scatter_df)[1]), y=~get(colnames(scatter_df)[2]), z=~get(colnames(scatter_df)[3]), 
+            color=scatter_df$cluster, colors = cluster_palette) %>% 
       add_markers(alpha = 1) %>% layout(title = paste0("Wine Clusters Split by ", colnames(scatter_df)[1], ", ", 
                                                        colnames(scatter_df)[2], " and ", colnames(scatter_df)[3]),
                                         scene = list(xaxis = list(title = colnames(scatter_df)[1]),
