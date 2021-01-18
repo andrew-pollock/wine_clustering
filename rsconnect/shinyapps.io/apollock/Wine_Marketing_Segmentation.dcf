@@ -1,0 +1,13 @@
+name: Wine_Marketing_Segmentation
+title: Wine_Marketing_Segmentation
+username:
+account: apollock
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3457542
+bundleId: 4077057
+url: https://apollock.shinyapps.io/Wine_Marketing_Segmentation/
+when: 1610233771.5427
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: 1 - Data PreProcessing.R|2 - Visualisation.R|3 - Clustering.R|4 - Clustering Dashboard.R|data/processed/processed_wine_data.csv|data/raw/winequality-white.csv|plots/3D_Scatter_Plot.html|plots/Plot1_Variable_Distribution.png|plots/Plot2_Variable_Correlation.png|plots/Plot3_Principal_Components.png
