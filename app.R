@@ -8,7 +8,7 @@ library(ggplot2)
 # Load the data
 wine_data <- readr::read_csv("data/processed/final_wine_data.csv")
 
-# Create my colour palette for the clusters
+# Define a colour palette for the clusters
 cluster_palette <- c("#1b9e77", "#e7298a", "#7570b3", "#d95f02")
 
 pie_chart_data <- wine_data %>% group_by(cluster) %>% summarise(count = n()) %>% mutate(cluster = paste0("Cluster ",cluster))
@@ -23,12 +23,16 @@ ui <- dashboardPage(
   
   dashboardBody(
     tabItem(tabName = "main_dashboard",
-            fluidRow( # Now the only row
+            fluidRow( 
+              
+              ## Left hand column
               column(width = 6, 
                      
+                     ## Top left
                      fluidRow(plotlyOutput("scatter_plot", height = 600, width = "100%")),
                      
-                     fluidRow(box(title = "Select Variables to Visualise", status = "primary", solidHeader = TRUE,  width = 12, #height = 440,
+                     ## Bottom left
+                     fluidRow(box(title = "Select Variables to Visualise", status = "primary", solidHeader = TRUE,  width = 12, 
                                   column(width = 4, selectInput("filter_var_1", "Filter Variable 1", choices=colnames(wine_data)[-15],
                                                                 selected=colnames(wine_data)[1])),
                                   column(width = 4, selectInput("filter_var_2", "Filter Variable 2", choices=colnames(wine_data)[-15],
@@ -39,15 +43,14 @@ ui <- dashboardPage(
                      )),
               
               
-              
               ## Right Hand Column
-              column(width = 6,  # Width (relative to full screen)
+              column(width = 6,  
                      
-                     fluidRow(box(title = "Cluster Summary Statistics", status = "primary", solidHeader = TRUE,  width = 11, 
-                                  tableOutput("summary_table")
-                                  )
-                              ),
-                     fluidRow(box(plotlyOutput("test_plot2", height = 450, width = "200%")))
+                     ## Top right
+                     fluidRow(box(title = "Cluster Summary Statistics", status = "primary", solidHeader = TRUE,  width = 11, tableOutput("summary_table"))),
+                     
+                     ## Bottom right
+                     fluidRow(box(plotlyOutput("cluster_pie_plot", height = 450, width = "200%")))
                      
                      )
             )
@@ -58,6 +61,7 @@ ui <- dashboardPage(
 
 server <- function(input, output) { 
   
+  ## Reactive dataset based on the bottom left filters
   scatter_data <- reactive({
     vars_to_select <- c(input$filter_var_1, input$filter_var_2, input$filter_var_3, "cluster")
     
@@ -65,6 +69,8 @@ server <- function(input, output) {
     output_data
   })
   
+  
+  ## Top left scatter plot, based on scatter_data
   output$scatter_plot <- renderPlotly({
     
     scatter_df <- scatter_data() %>% mutate(cluster = as.factor(paste0("Cluster ",cluster)))
@@ -80,7 +86,8 @@ server <- function(input, output) {
   })
   
   
-  output$test_plot2 <- renderPlotly({
+  ## Bottom left pie chart
+  output$cluster_pie_plot <- renderPlotly({
     plot_ly(pie_chart_data, labels = ~cluster, values = ~count, type = 'pie', 
             sort = FALSE, direction = "clockwise", textposition = 'inside', textinfo = 'label+percent',
             hoverinfo = 'text', text = ~paste(count, ' wines are in this cluster'),
@@ -91,10 +98,12 @@ server <- function(input, output) {
              legend = list(font = list(size = 20, itemwidth = 30)))
   })
 
-  ## Getting the reactive filter for the summary table
+  
+  ## Create a reactive filter for the summary table
   filter_data <- reactive({
     output_data <- c("Cluster", "Number_of_Wines", "quality", input$filter_var_1, input$filter_var_2, input$filter_var_3)
   })
+  
   
   ### Creating the summary table
   output$summary_table <- renderTable({
