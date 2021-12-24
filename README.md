@@ -3,7 +3,7 @@
 A basic clustering of wines based on their physical and chemical properties, created as part of my MSc. Includes an interactive shiny dashboard with plotly graphs, [hosted on my shinyapps.io page.](https://apollock.shinyapps.io/Wine_Marketing_Segmentation) 
 
 The segmentation was created using K-means clustering with k=4 based on the below elbow plot - from 4 clusters onwards the reduction in within-cluster TSS caused by each additional cluster slows significantly.
-<img src="plots/Plot4_Optimal_K.png"  height="600">
+<img src="plots/Plot4_Optimal_K.png"  height="500">
 
 The first 3 Principal Components explain approximately 52% of the total variance (after centering and scaling), so they've been included in the dashboard as a convenient way to visually seperate the 4 clusters.
 
