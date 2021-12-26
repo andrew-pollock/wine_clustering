@@ -67,9 +67,6 @@ k4$tot.withinss
 # Append the clusters to the original dataset
 wine_data$cluster <- k4$cluster
 
-# Save this dataset for use in my dashboard
-readr::write_csv(wine_data, "data/processed/clustered_wine_data.csv")
-
 # How many wines are in each cluster?
 wine_data %>% group_by(cluster) %>% summarise(n())
 
@@ -97,7 +94,7 @@ featurePlot(x = wine_data[, 1:11],
 
 
 ## How many principal components are needed?
-summary(prcomp(wine_data[,1:11], scale. = TRUE, center = TRUE))
+summary(prcomp(wine_data[,1:11], scale = TRUE, center = TRUE))
 # The first 3 PC explain 52% of the variance
 
 ## Calculate the first 3 PC for the dashboard
