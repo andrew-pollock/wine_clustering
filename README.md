@@ -40,3 +40,53 @@ featurePlot(x = wine_data[, 1:11],
 
 This shows some obvious patterns like wines in Cluster 2 having more alcohol and higher quality, Cluster 3 having a higher pH level, and Cluster 4 having more residual sugar and sulfur dioxide, but a more quantitative method would be useful.
 
+An alternative method involves training a multi-class classification model to predict the cluster based on the input variables. The model is then retrained over and over, excluding one variable at a time. The classification accuracy of each of these models can then be compared and the variable whose removal causes the largest decrease in model accuracy can be assumed to be the most important. Since a variable might only be useful for predicting a single cluster (e.g using sugar to predict a wine from cluster 4) it's important to consider the accuracy of each cluster, just just the overall accuracy. The below example does this with a random forest classifier.
+
+``` r
+# Create a vector of variables to iterate through
+vector_of_vars <- names(train_data)[-12]
+
+# Empty data.frame to hold the results
+results_df <- data.frame(matrix(nrow = 0, ncol=6))
+
+# Iterate through, excluding 1 variable at a time
+for (var in 1:length(vector_of_vars)){
+  # Set a seed for reproducibility
+  set.seed(101)
+  # Define model formula
+  model_formula <- as.formula(paste0("cluster~.-", vector_of_vars[var]))
+  
+  # Train model
+  partial_model <- train(model_formula, data = train_data, method = 'rf', ntree = 50)
+  
+  # Test confusion matrix
+  conf_matrix <- confusionMatrix(test_data$cluster, predict(partial_model, newdata = test_data))
+  
+  # Calculate the accuracy on test data
+  model_accuracy <- c(vector_of_vars[var], conf_matrix$byClass[1:4,11], conf_matrix$overall[1])
+  
+  # Append to results df
+  results_df <<- rbind(results_df, model_accuracy)
+}
+
+# Rename results_df columns
+colnames(results_df) = c("excluded_var", "Cluster 1", "Cluster 2", "Cluster 3", "Cluster 4", "Overall Accuracy")
+```
+
+We can plot the results of this to see which clusters become harder to predict (i.e they see a decrease in classification accuracy) when different variables are removed as inputs.
+
+``` r
+ggplot(gathered_df, aes(x=reorder_within(excluded_var, value, metric), y=value, fill = excluded_var)) +
+  geom_bar(stat="identity") +
+  facet_wrap(~metric, scales = "free") +
+  theme_bw() +
+  theme(legend.position="none", plot.title = element_text (hjust = 0.5)) +
+  coord_flip(ylim = c(0.5, 1)) +
+  scale_x_reordered() +
+  labs(title = "Impact of Removing Variables on Classification Accuracy",
+       x = "Excluded Variable", 
+       y = "Classification Accuracy")
+```
+<img src="plots/Plot6_Classification_Accuracy.png"  height="600">
+
+This method shows similar results to visually inspecting variable distributions - removing alcohol or quality as predictors has the largest impact on the model's ability to classify Cluster 2, pH and acidity is most important for Cluster 3, and sugar is most important for Cluster 4. 
